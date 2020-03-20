@@ -14267,7 +14267,6 @@ var NdnCommon = require('./ndn-common.js').NdnCommon; /** @ignore */
 var RttEstimator = require('./rtt-estimator.js').RttEstimator; /** @ignore */
 var DataFetcher = require('./data-fetcher.js').DataFetcher; /** @ignore */
 var Pipeline = require('./pipeline.js').Pipeline;
-var LOG = require('../log.js').Log.LOG;
 
 /**
  * Retrieve the segments of solicited data by keeping a fixed-size window of N
@@ -14520,7 +14519,7 @@ PipelineFixed.prototype.onData = function(data)
   var rtt = Date.now() - recSeg.timeSent;
   var fullDelay = Date.now() - recSeg.initTimeSent;
 
-  if (LOG > 1) {
+  if (Log.LOG > 1) {
     console.log ("Received segment #" + recSegmentNo
                  + ", rtt=" + rtt + "ms");
   }
@@ -14618,7 +14617,7 @@ PipelineFixed.prototype.onValidationFailed = function(data, reason)
 
 PipelineFixed.prototype.printSummary = function()
 {
-  if (LOG < 2)
+  if (Log.LOG < 2)
     return;
 
   var rttMsg = "";
@@ -14666,7 +14665,6 @@ var KeyChain = require('../security/key-chain.js').KeyChain; /** @ignore */
 var NdnCommon = require('./ndn-common.js').NdnCommon; /** @ignore */
 var RttEstimator = require('./rtt-estimator.js').RttEstimator; /** @ignore */
 var Pipeline = require('./pipeline.js').Pipeline; /** @ignore */
-var LOG = require('../log.js').Log.LOG;
 
 /**
  * Implementation of Cubic pipeline according to:
@@ -14697,6 +14695,7 @@ var LOG = require('../log.js').Log.LOG;
 var PipelineCubic = function PipelineCubic
   (baseInterest, face, opts, validatorKeyChain, onComplete, onError, stats)
 {
+  console.log(Log.LOG)
   this.pipeline = new Pipeline(baseInterest);
   this.face = face;
   this.validatorKeyChain = validatorKeyChain;
@@ -14851,11 +14850,11 @@ PipelineCubic.prototype.sendInterest = function(segNo, isRetransmission)
              this.maxRetriesOnTimeoutOrNack + ") while retrieving segment #" + segNo);
       }
     }
-    if (LOG > 1)
+    if (Log.LOG > 1)
       console.log("Retransmitting segment #" + segNo + " (" + this.retxCount[segNo] + ")");
   }
 
-  if (LOG > 1 && !isRetransmission)
+  if (Log.LOG > 1 && !isRetransmission)
     console.log("Requesting segment #" + segNo);
 
   var interest = this.pipeline.makeInterest(segNo);
@@ -15012,7 +15011,7 @@ PipelineCubic.prototype.onData = function(data)
   if (recSeg.initTimeSent !== undefined)
     fullDelay = Date.now() - recSeg.initTimeSent;
 
-  if (LOG > 1) {
+  if (Log.LOG > 1) {
     console.log ("Received segment #" + recSegmentNo
                  + ", rtt=" + rtt + "ms"
                  + ", rto=" + recSeg.rto + "ms");
@@ -15135,7 +15134,7 @@ PipelineCubic.prototype.recordTimeout = function()
     this.rttEstimator.backoffRto();
     this.nLossDecr++;
 
-    if (LOG > 1) {
+    if (Log.LOG > 1) {
       console.log("Packet loss event, new cwnd = " + this.cwnd
                   + ", ssthresh = " + this.ssthresh);
     }
@@ -15253,14 +15252,14 @@ PipelineCubic.prototype.onValidationFailed = function(data, reason)
 
 PipelineCubic.prototype.onWarning = function(errCode, reason)
 {
-  if (LOG > 2) {
+  if (Log.LOG > 2) {
     Pipeline.reportWarning(errCode, reason);
   }
 };
 
 PipelineCubic.prototype.printSummary = function()
 {
-  if (LOG < 2)
+  if (Log.LOG < 2)
     return;
 
   var rttMsg = "";
@@ -43228,7 +43227,7 @@ var Interest = function Interest
     this.exclude_ = new ChangeCounter(typeof exclude === 'object' && exclude instanceof Exclude ?
       new Exclude(exclude) : new Exclude());
     this.childSelector_ = childSelector;
-    this.mustBeFresh_ = true;
+    this.mustBeFresh_ = false;
     this.interestLifetimeMilliseconds_ = interestLifetimeMilliseconds;
     this.forwardingHint_ = new ChangeCounter(new DelegationSet());
     this.applicationParameters_ = new Blob();
@@ -43468,7 +43467,7 @@ Interest.prototype.getChildSelector = function()
 };
 
 /**
- * Get the must be fresh flag. If not specified, the default is true.
+ * Get the must be fresh flag. If not specified, the default is false.
  * @return {boolean} The must be fresh flag.
  */
 Interest.prototype.getMustBeFresh = function()
@@ -43883,7 +43882,7 @@ Interest.prototype.setChildSelector = function(childSelector)
 /**
  * Set the MustBeFresh flag.
  * @param {boolean} mustBeFresh True if the content must be fresh, otherwise
- * false. If you do not set this flag, the default value is true.
+ * false. If you do not set this flag, the default value is false.
  * @return {Interest} This Interest so that you can chain calls to update values.
  */
 Interest.prototype.setMustBeFresh = function(mustBeFresh)
@@ -45478,79 +45477,7 @@ Tlv0_2WireFormat.prototype.encodeInterest = function(interest)
     Tlv0_2WireFormat.didCanBePrefixWarning_ = true;
   }
 
-  if (interest.hasApplicationParameters())
-    // The application has specified a format v0.3 field. As we transition to
-    // format v0.3, encode as format v0.3 even though the application default is
-    // Tlv0_2WireFormat.
-    return Tlv0_2WireFormat.encodeInterestV03_
-      (interest, signedPortionBeginOffset, signedPortionEndOffset);
-
-  var encoder = new TlvEncoder(256);
-  var saveLength = encoder.getLength();
-
-  // Encode backwards.
-  if (interest.getForwardingHint().size() > 0) {
-    if (interest.getSelectedDelegationIndex() != null)
-      throw new Error
-        ("An Interest may not have a selected delegation when encoding a forwarding hint");
-    if (interest.hasLink())
-      throw new Error
-        ("An Interest may not have a link object when encoding a forwarding hint");
-
-    var forwardingHintSaveLength = encoder.getLength();
-    Tlv0_2WireFormat.encodeDelegationSet_(interest.getForwardingHint(), encoder);
-    encoder.writeTypeAndLength(
-      Tlv.ForwardingHint, encoder.getLength() - forwardingHintSaveLength);
-  }
-
-  encoder.writeOptionalNonNegativeIntegerTlv
-    (Tlv.SelectedDelegation, interest.getSelectedDelegationIndex());
-  var linkWireEncoding = interest.getLinkWireEncoding(this);
-  if (!linkWireEncoding.isNull())
-    // Encode the entire link as is.
-    encoder.writeBuffer(linkWireEncoding.buf());
-
-  encoder.writeOptionalNonNegativeIntegerTlv
-    (Tlv.InterestLifetime, interest.getInterestLifetimeMilliseconds());
-
-  // Encode the Nonce as 4 bytes.
-  if (interest.getNonce().isNull() || interest.getNonce().size() == 0)
-    // This is the most common case. Generate a nonce.
-    encoder.writeBlobTlv(Tlv.Nonce, Crypto.randomBytes(4));
-  else if (interest.getNonce().size() < 4) {
-    var nonce = Buffer(4);
-    // Copy existing nonce bytes.
-    interest.getNonce().buf().copy(nonce);
-
-    // Generate random bytes for remaining bytes in the nonce.
-    for (var i = interest.getNonce().size(); i < 4; ++i)
-      nonce[i] = Crypto.randomBytes(1)[0];
-
-    encoder.writeBlobTlv(Tlv.Nonce, nonce);
-  }
-  else if (interest.getNonce().size() == 4)
-    // Use the nonce as-is.
-    encoder.writeBlobTlv(Tlv.Nonce, interest.getNonce().buf());
-  else
-    // Truncate.
-    encoder.writeBlobTlv(Tlv.Nonce, interest.getNonce().buf().slice(0, 4));
-
-  Tlv0_2WireFormat.encodeSelectors(interest, encoder);
-  var tempOffsets = Tlv0_2WireFormat.encodeName(interest.getName(), encoder);
-  var signedPortionBeginOffsetFromBack =
-    encoder.getLength() - tempOffsets.signedPortionBeginOffset;
-  var signedPortionEndOffsetFromBack =
-    encoder.getLength() - tempOffsets.signedPortionEndOffset;
-
-  encoder.writeTypeAndLength(Tlv.Interest, encoder.getLength() - saveLength);
-  var signedPortionBeginOffset =
-    encoder.getLength() - signedPortionBeginOffsetFromBack;
-  var signedPortionEndOffset =
-    encoder.getLength() - signedPortionEndOffsetFromBack;
-
-  return { encoding: new Blob(encoder.getOutput(), false),
-           signedPortionBeginOffset: signedPortionBeginOffset,
-           signedPortionEndOffset: signedPortionEndOffset };
+  return Tlv0_2WireFormat.encodeInterestV03_(interest);
 };
 
 /**
@@ -56689,6 +56616,7 @@ Face.prototype.nfdRegisterPrefix = function
   var onIsLocalResult = function(isLocal) {
     var commandInterest = new Interest();
     commandInterest.setCanBePrefix(true);
+    commandInterest.setMustBeFresh(true);
     if (isLocal) {
       commandInterest.setName(new Name("/localhost/nfd/rib/register"));
       // The interest is answered by the local host, so set a short timeout.
