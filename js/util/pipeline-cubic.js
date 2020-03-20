@@ -26,7 +26,6 @@ var KeyChain = require('../security/key-chain.js').KeyChain; /** @ignore */
 var NdnCommon = require('./ndn-common.js').NdnCommon; /** @ignore */
 var RttEstimator = require('./rtt-estimator.js').RttEstimator; /** @ignore */
 var Pipeline = require('./pipeline.js').Pipeline; /** @ignore */
-var LOG = require('../log.js').Log.LOG;
 
 /**
  * Implementation of Cubic pipeline according to:
@@ -57,6 +56,7 @@ var LOG = require('../log.js').Log.LOG;
 var PipelineCubic = function PipelineCubic
   (baseInterest, face, opts, validatorKeyChain, onComplete, onError, stats)
 {
+  console.log(Log.LOG)
   this.pipeline = new Pipeline(baseInterest);
   this.face = face;
   this.validatorKeyChain = validatorKeyChain;
@@ -211,11 +211,11 @@ PipelineCubic.prototype.sendInterest = function(segNo, isRetransmission)
              this.maxRetriesOnTimeoutOrNack + ") while retrieving segment #" + segNo);
       }
     }
-    if (LOG > 1)
+    if (Log.LOG > 1)
       console.log("Retransmitting segment #" + segNo + " (" + this.retxCount[segNo] + ")");
   }
 
-  if (LOG > 1 && !isRetransmission)
+  if (Log.LOG > 1 && !isRetransmission)
     console.log("Requesting segment #" + segNo);
 
   var interest = this.pipeline.makeInterest(segNo);
@@ -372,7 +372,7 @@ PipelineCubic.prototype.onData = function(data)
   if (recSeg.initTimeSent !== undefined)
     fullDelay = Date.now() - recSeg.initTimeSent;
 
-  if (LOG > 1) {
+  if (Log.LOG > 1) {
     console.log ("Received segment #" + recSegmentNo
                  + ", rtt=" + rtt + "ms"
                  + ", rto=" + recSeg.rto + "ms");
@@ -495,7 +495,7 @@ PipelineCubic.prototype.recordTimeout = function()
     this.rttEstimator.backoffRto();
     this.nLossDecr++;
 
-    if (LOG > 1) {
+    if (Log.LOG > 1) {
       console.log("Packet loss event, new cwnd = " + this.cwnd
                   + ", ssthresh = " + this.ssthresh);
     }
@@ -613,14 +613,14 @@ PipelineCubic.prototype.onValidationFailed = function(data, reason)
 
 PipelineCubic.prototype.onWarning = function(errCode, reason)
 {
-  if (LOG > 2) {
+  if (Log.LOG > 2) {
     Pipeline.reportWarning(errCode, reason);
   }
 };
 
 PipelineCubic.prototype.printSummary = function()
 {
-  if (LOG < 2)
+  if (Log.LOG < 2)
     return;
 
   var rttMsg = "";

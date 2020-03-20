@@ -26,7 +26,6 @@ var NdnCommon = require('./ndn-common.js').NdnCommon; /** @ignore */
 var RttEstimator = require('./rtt-estimator.js').RttEstimator; /** @ignore */
 var DataFetcher = require('./data-fetcher.js').DataFetcher; /** @ignore */
 var Pipeline = require('./pipeline.js').Pipeline;
-var LOG = require('../log.js').Log.LOG;
 
 /**
  * Retrieve the segments of solicited data by keeping a fixed-size window of N
@@ -279,7 +278,7 @@ PipelineFixed.prototype.onData = function(data)
   var rtt = Date.now() - recSeg.timeSent;
   var fullDelay = Date.now() - recSeg.initTimeSent;
 
-  if (LOG > 1) {
+  if (Log.LOG > 1) {
     console.log ("Received segment #" + recSegmentNo
                  + ", rtt=" + rtt + "ms");
   }
@@ -377,7 +376,7 @@ PipelineFixed.prototype.onValidationFailed = function(data, reason)
 
 PipelineFixed.prototype.printSummary = function()
 {
-  if (LOG < 2)
+  if (Log.LOG < 2)
     return;
 
   var rttMsg = "";
