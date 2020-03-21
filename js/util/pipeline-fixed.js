@@ -184,6 +184,7 @@ PipelineFixed.prototype.cancelInFlightSegmentsGreaterThan = function(segNo)
   for (var i = segNo + 1; i < len; ++i) {
     if (this.dataFetchersContainer[i] !== null) {
       this.face.removePendingInterest(this.dataFetchersContainer[i].getPendingInterestId());
+      this.nInFlight--;
     }
   }
 };

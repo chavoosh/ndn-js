@@ -14695,7 +14695,6 @@ var Pipeline = require('./pipeline.js').Pipeline; /** @ignore */
 var PipelineCubic = function PipelineCubic
   (baseInterest, face, opts, validatorKeyChain, onComplete, onError, stats)
 {
-  console.log(Log.LOG)
   this.pipeline = new Pipeline(baseInterest);
   this.face = face;
   this.validatorKeyChain = validatorKeyChain;
@@ -14851,11 +14850,12 @@ PipelineCubic.prototype.sendInterest = function(segNo, isRetransmission)
       }
     }
     if (Log.LOG > 1)
-      console.log("Retransmitting segment #" + segNo + " (" + this.retxCount[segNo] + ")");
+      console.log("Retransmitting segment #" + segNo + " (" + this.retxCount[segNo] + ")" +
+                  " rto: " + this.rttEstimator.getEstimatedRto());
   }
 
   if (Log.LOG > 1 && !isRetransmission)
-    console.log("Requesting segment #" + segNo);
+    console.log("Requesting segment #" + segNo + " rto: " + this.rttEstimator.getEstimatedRto());
 
   var interest = this.pipeline.makeInterest(segNo);
 
