@@ -14426,6 +14426,7 @@ PipelineFixed.prototype.cancelInFlightSegmentsGreaterThan = function(segNo)
   for (var i = segNo + 1; i < len; ++i) {
     if (this.dataFetchersContainer[i] !== null) {
       this.face.removePendingInterest(this.dataFetchersContainer[i].getPendingInterestId());
+      this.nInFlight--;
     }
   }
 };
@@ -15072,7 +15073,6 @@ PipelineCubic.prototype.onData = function(data)
     catch (ex) {
       this.handleFailure(-1, Pipeline.ErrorCode.MISC,
            "Error in onComplete: " + NdnCommon.getErrorWithStackTrace(ex));
-      return;
     }
     return;
   }
@@ -15148,11 +15148,11 @@ PipelineCubic.prototype.cancelInFlightSegmentsGreaterThan = function(segNo)
 {
   for (var i = segNo + 1; i < this.segmentInfo.length; ++i) {
     // cancel fetching all segments that follow
-    if (this.segmentInfo[i] !== undefined)
+    if (this.segmentInfo[i] !== undefined) {
       this.face.removePendingInterest(this.segmentInfo[i].pendingInterestId);
-
-    this.segmentInfo[i] = undefined;  // do no splice
-    this.nInFlight--;
+      this.segmentInfo[i] = undefined;  // do no splice
+      this.nInFlight--;
+    }
   }
 };
 
