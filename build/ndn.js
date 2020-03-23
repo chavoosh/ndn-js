@@ -14329,6 +14329,7 @@ var PipelineFixed = function PipelineFixed
   this.onComplete = onComplete;
   this.onError = onError;
   this.pipeline = new Pipeline(baseInterest);
+  this.contentName = baseInterest.getName().toUri();
 
   this.nInFlight = 0;
 
@@ -14631,7 +14632,8 @@ PipelineFixed.prototype.printSummary = function()
                                + this.rttEstimator.getMaxRtt().toPrecision(3) + " ms";
   }
 
-  console.log("Timeouts: " + this.stats.nTimeouts + " Nacks: " + this.stats.nNacks + "\n" +
+  console.log("Content: " + this.contentName + "\n" +
+              "Timeouts: " + this.stats.nTimeouts + " Nacks: " + this.stats.nNacks + "\n" +
               "Retransmitted segments: " + this.stats.nRetransmitted + "\n" +
               "RTT " + rttMsg + "\n" +
               "Average jitter: " + this.rttEstimator.getAvgJitter().toPrecision(3) + " ms\n" +
@@ -14700,6 +14702,7 @@ var PipelineCubic = function PipelineCubic
   this.validatorKeyChain = validatorKeyChain;
   this.onComplete = onComplete;
   this.onError = onError;
+  this.contentName = baseInterest.getName().toUri();
 
   // Adaptive options
   this.initCwnd = Pipeline.op("initCwnd", 1.0, opts);
@@ -15273,7 +15276,9 @@ PipelineCubic.prototype.printSummary = function()
                                + this.rttEstimator.getMaxRtt().toPrecision(3) + " ms";
   }
 
-  console.log("Timeouts: " + this.nTimeouts + " (caused " + this.nLossDecr + " window decreases)\n" +
+  console.log("Content: " + this.contentName + "\n" +
+              "Timeouts: " + this.nTimeouts + " (caused " + this.nLossDecr + " window decreases)\n" +
+              "Timeouts: " + this.nTimeouts + " (caused " + this.nLossDecr + " window decreases)\n" +
               "Nacks: " + this.nNacks + "\n" +
               "Retransmitted segments: " + this.nRetransmitted +
               " (" + (this.nSent == 0 ? 0 : (this.nRetransmitted / this.nSent * 100))  + "%)" +

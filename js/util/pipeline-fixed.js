@@ -88,6 +88,7 @@ var PipelineFixed = function PipelineFixed
   this.onComplete = onComplete;
   this.onError = onError;
   this.pipeline = new Pipeline(baseInterest);
+  this.contentName = baseInterest.getName().toUri();
 
   this.nInFlight = 0;
 
@@ -391,7 +392,8 @@ PipelineFixed.prototype.printSummary = function()
                                + this.rttEstimator.getMaxRtt().toPrecision(3) + " ms";
   }
 
-  console.log("Timeouts: " + this.stats.nTimeouts + " Nacks: " + this.stats.nNacks + "\n" +
+  console.log("Content: " + this.contentName + "\n" +
+              "Timeouts: " + this.stats.nTimeouts + " Nacks: " + this.stats.nNacks + "\n" +
               "Retransmitted segments: " + this.stats.nRetransmitted + "\n" +
               "RTT " + rttMsg + "\n" +
               "Average jitter: " + this.rttEstimator.getAvgJitter().toPrecision(3) + " ms\n" +
