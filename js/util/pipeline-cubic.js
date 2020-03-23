@@ -170,6 +170,7 @@ PipelineCubic.prototype.decreaseWindow = function()
 PipelineCubic.prototype.run = function()
 {
   this.stats.pipelineStartTime = Date.now();
+  console.log("start fetching: " + this.contentName + "\n" +
 
   // Schedule the next check after the predefined interval
   setTimeout(this.checkRto.bind(this), this.rtoCheckInterval);
@@ -634,8 +635,7 @@ PipelineCubic.prototype.printSummary = function()
                                + this.rttEstimator.getMaxRtt().toPrecision(3) + " ms";
   }
 
-  console.log("Content: " + this.contentName + "\n" +
-              "Timeouts: " + this.nTimeouts + " (caused " + this.nLossDecr + " window decreases)\n" +
+  console.log("Timeouts: " + this.nTimeouts + " (caused " + this.nLossDecr + " window decreases)\n" +
               "Timeouts: " + this.nTimeouts + " (caused " + this.nLossDecr + " window decreases)\n" +
               "Nacks: " + this.nNacks + "\n" +
               "Retransmitted segments: " + this.nRetransmitted +

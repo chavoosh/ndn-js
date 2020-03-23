@@ -115,6 +115,7 @@ exports.PipelineFixed = PipelineFixed;
 PipelineFixed.prototype.run = function()
 {
   this.stats.pipelineStartTime = Date.now();
+  console.log("start fetching: " + this.contentName + "\n" +
 
   var interest = this.pipeline.makeInterest(0);
   if (Number.isNaN(this.pipeline.versionNo) ) {
@@ -392,8 +393,7 @@ PipelineFixed.prototype.printSummary = function()
                                + this.rttEstimator.getMaxRtt().toPrecision(3) + " ms";
   }
 
-  console.log("Content: " + this.contentName + "\n" +
-              "Timeouts: " + this.stats.nTimeouts + " Nacks: " + this.stats.nNacks + "\n" +
+  console.log("Timeouts: " + this.stats.nTimeouts + " Nacks: " + this.stats.nNacks + "\n" +
               "Retransmitted segments: " + this.stats.nRetransmitted + "\n" +
               "RTT " + rttMsg + "\n" +
               "Average jitter: " + this.rttEstimator.getAvgJitter().toPrecision(3) + " ms\n" +
